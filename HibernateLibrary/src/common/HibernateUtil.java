@@ -27,38 +27,38 @@ public class HibernateUtil {
 	// INNER CLASS
 	public static class SessionFactoryBuilder{
 		
-		/** The location of hibernate.cfg.xml */
-		private String 	hibernate_cfg_xml_internal_path 	= "hibernate.cfg.xml";
-		/** Same as {@link #hibernate_cfg_xml_internal_path} but support external File  */
-		private File 	hibernate_cfg_xml_file 				= null;
-		/** Same as {@link #hibernate_cfg_xml_internal_path} but support URL */
-		private URL 	hibernate_cfg_xml_url 				= null;
+		/**
+		 * The location of hibernate.cfg.xml
+		 * Supported location type - String, File, URL
+		 */
+		private Object hibernate_cfg_xml = "hibernate.cfg.xml";		// default location [Project]/src/hibernate.cfg.xml
 		
-		
-		/** Map{@literal<Resource location, null>}, the value is not used. Avoid duplicate configuration. */
-		private final Map<String, Object> 	resources_internal_path 	= new HashMap<String, Object>();
-		/** Same as {@link #resources_internal_path} but support external File */
-		private final Map<File, Object>		resources_file 				= new HashMap<File, Object>();
-		/** Same as {@link #resources_internal_path} but support URL */
-		private final Map<URL, Object> 		resources_url 				= new HashMap<URL, Object>();
-		
+		/**
+		 * Map{@literal<Resource location, null>}, the value is not used. Use HashMap key to avoid duplicate configuration. <br/>
+		 * Supported location type - String, File, URL
+		 */
+		private final Map<Object, Void> resources = new HashMap<Object, Void>();		
 
+		
+		
 		/**
 		 * Set the path for hibernate.cfg.xml. Note that it should contains Property configuration only.
 		 * @param hibernate_cfg_xml_internal_path such as '/com/hibernate.cfg.xml', default is 'hibernate.cfg.xml' which located at [project]/src
 		 */
 		public SessionFactoryBuilder setPropertyConfiguration(String hibernate_cfg_xml_internal_path){
-			this.hibernate_cfg_xml_internal_path = hibernate_cfg_xml_internal_path;
-			return this;
+			return this.setPropertyConfiguration((Object) hibernate_cfg_xml_internal_path);
 		}
 		/** Same as {@link #setPropertyConfiguration(String)} but support external File */
 		public SessionFactoryBuilder setPropertyConfiguration(File hibernate_cfg_xml_file){
-			this.hibernate_cfg_xml_file = hibernate_cfg_xml_file;
-			return this;
+			return this.setPropertyConfiguration((Object) hibernate_cfg_xml_file);
 		}
 		/** Same as {@link #setPropertyConfiguration(String)} but support URL */
 		public SessionFactoryBuilder setPropertyConfiguration(URL hibernate_cfg_xml_url){
-			this.hibernate_cfg_xml_url = hibernate_cfg_xml_url;
+			return this.setPropertyConfiguration((Object) hibernate_cfg_xml_url);
+		}
+		/** Entry Setter for hibernate.cfg.xml */
+		private SessionFactoryBuilder setPropertyConfiguration(Object hibernate_cfg_xml){
+			this.hibernate_cfg_xml = hibernate_cfg_xml;
 			return this;
 		}
 		
@@ -68,17 +68,19 @@ public class HibernateUtil {
 		 * @param resource_xml_internal_path The XML resource location, such as '/com/package/hibernate.cfg.mapping.xml'
 		 */
 		public SessionFactoryBuilder addConfiguration(String resource_xml_internal_path){
-			resources_internal_path.put(resource_xml_internal_path, null);
-			return this;
+			return this.addConfiguration((Object) resource_xml_internal_path);
 		}
 		/** Same as {@link #addConfiguration(String)} but support external File */
 		public SessionFactoryBuilder addConfiguration(File resource_xml_file){
-			resources_file.put(resource_xml_file, null);
-			return this;
+			return this.addConfiguration((Object) resource_xml_file);
 		}
 		/** Same as {@link #addConfiguration(String)} but support URL */
 		public SessionFactoryBuilder addConfiguration(URL resource_xml_url){
-			resources_url.put(resource_xml_url, null);
+			return this.addConfiguration((Object) resource_xml_url);
+		}
+		/** Entry Putter for resource*/
+		private SessionFactoryBuilder addConfiguration(Object resource){
+			resources.put(resource, null);
 			return this;
 		}
 		
@@ -98,24 +100,25 @@ public class HibernateUtil {
 		public Configuration configureAll(){
 			final Configuration configuration = new Configuration();
 			
-			// Only one hibernate.cfg.xml is used.
-			if (hibernate_cfg_xml_file != null)
-				configuration.configure(hibernate_cfg_xml_file);			// File
-			else if (hibernate_cfg_xml_url != null)
-				configuration.configure(hibernate_cfg_xml_url);				// URL
-			else	// default
-				configuration.configure(hibernate_cfg_xml_internal_path);	// String
+			// Configure Property XML. Only one hibernate.cfg.xml is used.
+			this.doConfigureSupportedType(configuration, hibernate_cfg_xml);
 
-			// All resources are used.
-			for (File resource : resources_file.keySet())
-				configuration.configure(resource);							// File
-			for (URL resource : resources_url.keySet())
-				configuration.configure(resource);							// URL
-			for (String resource : resources_internal_path.keySet())
-				configuration.configure(resource);							// String
+			// Configure additional XML resources. All resources are used.
+			for (Object resource : resources.keySet())
+				this.doConfigureSupportedType(configuration, resource);
 			
 			return configuration;
 		}
+		/** Call Configure.configure with auto casting supported type */
+		private void doConfigureSupportedType(Configuration configuration, Object resource){
+			if (resource instanceof String)				// String
+				configuration.configure((String) resource);
+			else if (resource instanceof File)			// File
+				configuration.configure((File) resource);
+			else if (resource instanceof URL)			// URL
+				configuration.configure((URL) resource);
+		}
+		
 		/** 
 		 * Build a SessionFactory by your own configuration 
 		 * @see SessionFactoryBuilder#build()
