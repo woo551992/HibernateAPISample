@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated Sep 9, 2013 12:20:02 AM by Hibernate Tools 4.0.0 -->
+<hibernate-mapping>
+    <class name="model.Accountrole" table="accountrole" catalog="database1">
+        <id name="id" type="java.lang.Integer">
+            <column name="Id" />
+            <generator class="identity" />
+        </id>
+        <many-to-one name="role" class="model.Role" fetch="select">
+            <column name="RoleName" length="20" not-null="true" />
+        </many-to-one>
+        <many-to-one name="account" class="model.Account" fetch="select">
+            <column name="Username" length="20" not-null="true" />
+        </many-to-one>
+    </class>
+</hibernate-mapping>
