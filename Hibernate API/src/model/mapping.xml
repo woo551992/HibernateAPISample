@@ -4,8 +4,10 @@
 "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
     <session-factory>
-        <mapping resource="model/Role.hbm.xml" />
-        <mapping resource="model/Account.hbm.xml" />
-        <mapping resource="model/Accountrole.hbm.xml" />
+        <mapping class="model.Role" />
+        <mapping class="model.User" />
+        <mapping class="model.Account" />
+        <mapping class="model.UserAge" />
+        <mapping class="model.Accountrole" />
     </session-factory>
 </hibernate-configuration>
